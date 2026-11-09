@@ -1,0 +1,32 @@
+const http = require("http");
+
+const server = http.createServer((req, res) => {
+res.setHeader("Content-Type", "application/json");
+res.setHeader("Access-Control-Allow-Origin", "*");
+res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+se (req.method === "OPTIONS") {
+res.writeHead(204);
+restituisci res.end();
+}
+
+se (req.url === "/") {
+res.writeHead(200);
+restituisci res.end(JSON.stringify({
+stato: "online",
+messaggio: "Server AI IBRA attivo!"
+}));
+}
+
+res.writeHead(404);
+res.end(JSON.stringify({
+errore: "Pagina non trovata"
+}));
+});
+
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+console.log(`IBRA AI attivo sulla porta ${PORT}`);
+});
