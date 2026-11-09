@@ -4,6 +4,6 @@
 "descrizione": "Backend di IBRA AI",
 "main": "server.js",
 "scripts": {
-"start Cerca "node server.js"
+"start": Cerca "node server.js"
 }
 }
