@@ -5,7 +5,7 @@ const path = require("path");
 
 const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.OPENAI_API_KEY;
-
+console.log("OPENAI_API_KEY presente:", Boolean(API_KEY));
 const server = http.createServer(async (req, res) => {
   // Mostra la pagina principale
   if (req.method === "GET" && req.url === "/") {
