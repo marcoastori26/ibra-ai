@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IBRA AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b1020;
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 850px;
+      height: 90vh;
+      background: #151c30;
+      border: 1px solid #29344e;
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      padding: 22px;
+      border-bottom: 1px solid #29344e;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      background: #526dff;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    header h2 {
+      margin: 0;
+    }
+
+    header p {
+      margin: 5px 0 0;
+      color: #9ba9c5;
+      font-size: 13px;
+    }
+
+    #messages {
+      flex: 1;
+      padding: 22px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .message {
+      padding: 14px 17px;
+      border-radius: 14px;
+      max-width: 85%;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .bot {
+      background: #222d47;
+      align-self: flex-start;
+    }
+
+    .user {
+      background: #526dff;
+      align-self: flex-end;
+    }
+
+    .input-area {
+      padding: 18px;
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid #29344e;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      padding: 15px;
+      border-radius: 12px;
+      border: 1px solid #35415d;
+      background: #0d1426;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    button {
+      padding: 0 22px;
+      border: 0;
+      border-radius: 12px;
+      background: #526dff;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <header>
+      <div class="logo">IA</div>
+      <div>
+        <h2>IBRA AI</h2>
+        <p>Il tuo assistente personale intelligente</p>
+      </div>
+    </header>
+
+    <section id="messages">
+      <div class="message bot">
+        Ciao! Sono IBRA AI. Come posso aiutarti oggi?
+      </div>
+    </section>
+
+    <form class="input-area" id="chatForm">
+      <input
+        id="userInput"
+        type="text"
+        placeholder="Scrivi un messaggio..."
+        autocomplete="off"
+        required
+      >
+      <button id="sendButton" type="submit">Invia</button>
+    </form>
+  </main>
+
+  <script>
+    const form = document.getElementById("chatForm");
+    const input = document.getElementById("userInput");
+    const messages = document.getElementById("messages");
+    const sendButton = document.getElementById("sendButton");
+
+    function addMessage(text, type) {
+      const message = document.createElement("div");
+      message.className = "message " + type;
+      message.textContent = text;
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+      return message;
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const text = input.value.trim();
+      if (!text || sendButton.disabled) return;
+
+      addMessage(text, "user");
+      input.value = "";
+      sendButton.disabled = true;
+
+      const loading = addMessage("IBRA AI sta pensando...", "bot");
+
+      try {
+        const response = await fetch("/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: text })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Errore del server");
+        }
+
+        loading.textContent = data.reply || "Non ho ricevuto una risposta.";
+      } catch (error) {
+        loading.textContent =
+          "Non riesco a collegarmi al server. Controlla che sia online.";
+        console.error(error);
+      } finally {
+        sendButton.disabled = false;
+        input.focus();
+      }
+    });
+  </script>
+</body>
+</html>
