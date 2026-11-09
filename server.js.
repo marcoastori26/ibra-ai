@@ -1,32 +1,97 @@
 const http = require("http");
 
-const server = http.createServer((req, res) => {
-res.setHeader("Content-Type", "application/json");
-res.setHeader("Access-Control-Allow-Origin", "*");
-res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-se (req.method === "OPTIONS") {
-res.writeHead(204);
-restituisci res.end();
-}
-
-se (req.url === "/") {
-res.writeHead(200);
-restituisci res.end(JSON.stringify({
-stato: "online",
-messaggio: "Server AI IBRA attivo!"
-}));
-}
-
-res.writeHead(404);
-res.end(JSON.stringify({
-errore: "Pagina non trovata"
-}));
-});
-
 const PORT = process.env.PORT || 3000;
 
-server.listen(PORT, () => {
-console.log(`IBRA AI attivo sulla porta ${PORT}`);
+const server = http.createServer(async (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+  }
+
+  if (req.method === "GET" && req.url === "/") {
+    res.writeHead(200);
+    return res.end(JSON.stringify({
+      message: "IBRA AI è online!"
+    }));
+  }
+
+  if (req.method === "POST" && req.url === "/chat") {
+    try {
+      let body = "";
+
+      for await (const chunk of req) {
+        body += chunk;
+      }
+
+      const data = JSON.parse(body);
+
+      if (!data.message || typeof data.message !== "string") {
+        res.writeHead(400);
+        return res.end(JSON.stringify({
+          error: "Messaggio non valido"
+        }));
+      }
+
+      const apiKey = process.env.OPENAI_API_KEY;
+
+      if (!apiKey) {
+        res.writeHead(500);
+        return res.end(JSON.stringify({
+          error: "Chiave API non configurata"
+        }));
+      }
+
+      const response = await fetch(
+        "https://api.openai.com/v1/responses",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: "gpt-4.1-mini",
+            instructions: "Sei IBRA AI, un assistente utile, chiaro e gentile. Rispondi in italiano quando l'utente scrive in italiano.",
+            input: data.message
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error(result);
+        res.writeHead(502);
+        return res.end(JSON.stringify({
+          error: "Errore nella risposta dell'intelligenza artificiale"
+        }));
+      }
+
+      res.writeHead(200);
+      return res.end(JSON.stringify({
+        reply: result.output_text || "Non sono riuscito a generare una risposta."
+      }));
+
+    } catch (error) {
+      console.error(error);
+      res.writeHead(500);
+      return res.end(JSON.stringify({
+        error: "Errore del server"
+      }));
+    }
+  }
+
+  res.writeHead(404);
+  res.end(JSON.stringify({
+    error: "Pagina non trovata"
+  }));
+});
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`IBRA AI avviato sulla porta ${PORT}`);
 });
