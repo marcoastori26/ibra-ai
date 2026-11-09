@@ -3,95 +3,105 @@ const http = require("http");
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(async (req, res) => {
-  res.setHeader("Content-Type", "application/json");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+res.setHeader("Content-Type", "application/json; charset=utf-8");
+res.setHeader("Access-Control-Allow-Origin", "*");
+res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    return res.end();
-  }
+se (req.method === "OPTIONS") {
+res.writeHead(204);
+restituisci res.end();
+}
 
-  if (req.method === "GET" && req.url === "/") {
-    res.writeHead(200);
-    return res.end(JSON.stringify({
-      message: "IBRA AI è online!"
-    }));
-  }
+se (req.method === "GET" && req.url === "/") {
+res.writeHead(200);
+restituisci res.end(JSON.stringify({
+messaggio: "IBRA AI è online!"
+}));
+}
 
-  if (req.method === "POST" && req.url === "/chat") {
-    try {
-      let body = "";
+se (req.method === "POST" && req.url === "/chat") {
+Tentativo {
+lascia corpo = "";
 
-      for await (const chunk of req) {
-        body += chunk;
-      }
+per attendere (blocco costante di richiesta) {
+corpo += blocco;
+}
 
-      const data = JSON.parse(body);
+const data = JSON.parse(body);
 
-      if (!data.message || typeof data.message !== "string") {
-        res.writeHead(400);
-        return res.end(JSON.stringify({
-          error: "Messaggio non valido"
-        }));
-      }
+se (!data.message || typeof data.message !== "string") {
+res.writeHead(400);
+restituisci res.end(JSON.stringify({
+errore: "Messaggio non valido"
+}));
+}
 
-      const apiKey = process.env.OPENAI_API_KEY;
+const apiKey = process.env.OPENAI_API_KEY;
 
-      if (!apiKey) {
-        res.writeHead(500);
-        return res.end(JSON.stringify({
-          error: "Chiave API non configurata"
-        }));
-      }
+se (!apiKey) {
+res.writeHead(500);
+restituisci res.end(JSON.stringify({
+errore: "Chiave API non configurata"
+}));
+}
 
-      const response = await fetch(
-        "https://api.openai.com/v1/responses",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-          },
-          body: JSON.stringify({
-            model: "gpt-4.1-mini",
-            instructions: "Sei IBRA AI, un assistente utile, chiaro e gentile. Rispondi in italiano quando l'utente scrive in italiano.",
-            input: data.message
-          })
-        }
-      );
+const response = await fetch(
+" https://api.openai.com/v1/chat/completions ",
+{
+metodo: "POST",
+intestazioni: {
+"Content-Type": "application/json",
+"Autorizzazione": `Bearer ${apiKey}`
+},
+corpo: JSON.stringify({
+modello: "gpt-4o-mini",
+messaggi: [
+{
+ruolo: "sistema",
+contenuto: "Sei IBRA AI, un assistente personale intelligente, utile e gentile. Rispondi in italiano quando l'utente scrive in italiano. Dai risposte chiare, precise e naturali."
+},
+{
+ruolo: "utente"
+contenuto: dati.messaggio
+}
+]
+})
+}
+);
 
-      const result = await response.json();
+const risultato = await risposta.json();
 
-      if (!response.ok) {
-        console.error(result);
-        res.writeHead(502);
-        return res.end(JSON.stringify({
-          error: "Errore nella risposta dell'intelligenza artificiale"
-        }));
-      }
+se (!risposta.ok) {
+console.error("Errore OpenAI:", risultato);
 
-      res.writeHead(200);
-      return res.end(JSON.stringify({
-        reply: result.output_text || "Non sono riuscito a generare una risposta."
-      }));
+res.writeHead(502);
+restituisci res.end(JSON.stringify({
+errore: "Errore nella risposta dell'intelligenza artificiale"
+}));
+}
 
-    } catch (error) {
-      console.error(error);
-      res.writeHead(500);
-      return res.end(JSON.stringify({
-        error: "Errore del server"
-      }));
-    }
-  }
+res.writeHead(200);
+restituisci res.end(JSON.stringify({
+risposta: risultato.scelte?.[0]?.messaggio?.content || "Non sono riuscito a generare una risposta."
+}));
 
-  res.writeHead(404);
-  res.end(JSON.stringify({
-    error: "Pagina non trovata"
-  }));
+} catch (errore) {
+console.error("Errore server:", error);
+
+res.writeHead(500);
+restituisci res.end(JSON.stringify({
+errore: "Errore del server"
+}));
+}
+}
+
+res.writeHead(404);
+res.end(JSON.stringify({
+errore: "Pagina non trovata"
+}));
 });
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`IBRA AI avviato sulla porta ${PORT}`);
+console.log(`IBRA AI avviato sulla porta ${PORT}`);
 });
